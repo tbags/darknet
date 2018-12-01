@@ -5,6 +5,7 @@ OPENCV=0
 AVX=0
 OPENMP=0
 LIBSO=0
+GEM5=1
 
 # set GPU=1 and CUDNN=1 to speedup on GPU
 # set CUDNN_HALF=1 to further speedup 3 x times (Mixed-precision using Tensor Cores) on GPU Tesla V100, Titan V, DGX-2
@@ -51,7 +52,8 @@ NVCC=nvcc
 OPTS=-Ofast
 LDFLAGS= -lm -pthread 
 COMMON= 
-CFLAGS=-Wall -Wfatal-errors -Wno-unused-result -Wno-unknown-pragmas
+SUFFIX=
+CFLAGS=-g -Wall -Wfatal-errors -Wno-unused-result -Wno-unknown-pragmas
 
 ifeq ($(DEBUG), 1) 
 OPTS= -O0 -g
@@ -102,6 +104,11 @@ CFLAGS+= -DCUDNN_HALF
 ARCH+= -gencode arch=compute_70,code=[sm_70,compute_70]
 endif
 
+ifeq ($(GEM5),1)
+COMMON+= -I/home/hegde031/g5/gem5/include/
+SUFFIX+= m5op_x86.o
+endif
+
 OBJ=http_stream.o gemm.o utils.o cuda.o convolutional_layer.o list.o image.o activations.o im2col.o col2im.o blas.o crop_layer.o dropout_layer.o maxpool_layer.o softmax_layer.o data.o matrix.o network.o connected_layer.o cost_layer.o parser.o option_list.o darknet.o detection_layer.o captcha.o route_layer.o writing.o box.o nightmare.o normalization_layer.o avgpool_layer.o coco.o dice.o yolo.o detector.o layer.o compare.o classifier.o local_layer.o swag.o shortcut_layer.o activation_layer.o rnn_layer.o gru_layer.o rnn.o rnn_vid.o crnn_layer.o demo.o tag.o cifar.o go.o batchnorm_layer.o art.o region_layer.o reorg_layer.o reorg_old_layer.o super.o voxel.o tree.o yolo_layer.o upsample_layer.o
 ifeq ($(GPU), 1) 
 LDFLAGS+= -lstdc++ 
@@ -124,16 +131,16 @@ $(APPNAMESO): $(LIBNAMESO) src/yolo_v2_class.hpp src/yolo_console_dll.cpp
 endif
 
 $(EXEC): $(OBJS)
-	$(CPP) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CPP) $(COMMON) $(CFLAGS) $^ -o  $@ $(SUFFIX) $(LDFLAGS)
 
 $(OBJDIR)%.o: %.c $(DEPS)
-	$(CC) $(COMMON) $(CFLAGS) -c $< -o $@
+	$(CC) $(COMMON) $(CFLAGS) -c $< -o  $@ $(SUFFIX) 
 
 $(OBJDIR)%.o: %.cpp $(DEPS)
-	$(CPP) $(COMMON) $(CFLAGS) -c $< -o $@
+	$(CPP) $(COMMON) $(CFLAGS) -c $< -o  $@ $(SUFFIX)
 
 $(OBJDIR)%.o: %.cu $(DEPS)
-	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS)" -c $< -o $@
+	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS)" -c $< -o  $@
 
 obj:
 	mkdir -p obj

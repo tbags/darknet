@@ -5,6 +5,7 @@
 #include "col2im.h"
 #include "blas.h"
 #include "gemm.h"
+#include "m5ops.h"
 #include <stdio.h>
 #include <time.h>
 
@@ -566,7 +567,7 @@ void forward_convolutional_layer(convolutional_layer l, network_state state)
     float *a = l.weights;
     float *b = state.workspace;
     float *c = l.output;
-
+    m5_dump_stats(0, 0);
     for(i = 0; i < l.batch; ++i){
         im2col_cpu(state.input, l.c, l.h, l.w, 
                 l.size, l.stride, l.pad, b);
